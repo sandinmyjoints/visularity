@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <title>Sim Clusters</title>
+    <script type="text/javascript" src="../static/js/d3.v2.js"></script>
+    <link type="text/css" rel="stylesheet" href="../static/css/cluster.css"/>
+</head>
+<body>
+<div id="chart_dendro"></div>
+<div id="chart_flat"></div>
+<div id="chart_flat_ap"></div>
+<script type="text/javascript" src="../static/js/cluster.js"></script>
+<script type="text/javascript" src="../static/js/pack.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#refresh").on("click", function (event) {
+            event.preventDefault();
+            visualize_cluster("{{ url_for('cluster_json') }}");
+
+        });
+
+        visualize_cluster("{{ url_for('cluster_json') }}");
+    });
+</script>
+</body>
+</html>

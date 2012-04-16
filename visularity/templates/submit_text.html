@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Submit some text - {{ super() }}{% endblock title %}
+
+{% block body %}
+<h1>Submit a sentence or two.</h1>
+<h3>A fact or facts would work well.</h3>
+<form action="/" method="GET">
+    <label for="id_text">Submit a sentence or two.</label>
+    <input id="id_text" type="text" size="100" maxlength="100" name="text">
+    <input type="submit" name="submit" value="Submit">
+</form>
+
+{% endblock body %}

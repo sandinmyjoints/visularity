@@ -1,0 +1,17 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+
+    <title>{% block title %}Visularity{% endblock %}</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extrahead %}{% endblock extrahead %}
+</head>
+<body>
+{% for message in get_flashed_messages() %}
+<div class="message">{{ message }}</div>
+{% endfor %}
+
+{% block body %}
+{% endblock body %}
+</body>
+</html>

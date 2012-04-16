@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Visualize - {{ super() }}{% endblock title %}
+
+{% block extrahead %}
+<script type="text/javascript" src="{{ url_for('static', filename='js/d3.v2.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/libs/jquery-1.7.1.min.js') }}"></script>
+<link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/pack.css') }}"/>
+{% endblock extrahead %}
+
+{% block body %}
+
+<h1>Similarity Scores</h1>
+
+{% if computed_matches %}
+<table>
+    <thead>
+    <th>Query</th>
+    <th>Score against index terms</th>
+    </thead>
+    <tbody>
+    {% for query, sim_scores in computed_matches.iteritems() %}
+    <tr>
+        <td>{{ query }}</td>
+        <td>
+            <ol>
+                {% for score, text in sim_scores %}
+                <li>{{ score }} {{ text }}</li>
+                {% endfor %}
+            </ol>
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>Nothing yet.</p>
+{% endif %}
+
+<h1>Similarity Visualization</h1>
+<button id="refresh" name="Refresh" value="Refresh">Refresh</button>
+
+<h2>Hierarchical cluster</h2>
+<div id="chart-hcluster"></div>
+
+<h2>Affinity Propagation cluster</h2>
+<div id="chart-apcluster"></div>
+
+<h2>Dendrogram</h2>
+<div id="chart-dcluster"></div>
+
+<script type="text/javascript" src="{{ url_for('static', filename='js/pack.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/cluster.js') }}"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#refresh").on("click", function (event) {
+            event.preventDefault();
+            visualize_flat("{{ url_for('cluster', type='hcluster') }}", "#chart-hcluster");
+            visualize_flat("{{ url_for('cluster', type='apcluster') }}", "#chart-apcluster");
+            visualize_dendro("{{ url_for('cluster', type='dcluster') }}", "#chart-dcluster");
+
+        });
+        visualize_flat("{{ url_for('cluster', type='hcluster') }}", "#chart-hcluster");
+        visualize_flat("{{ url_for('cluster', type='apcluster') }}", "#chart-apcluster");
+        visualize_dendro("{{ url_for('cluster', type='dcluster') }}", "#chart-dcluster");
+    });
+</script>
+
+
+{% endblock body %}
