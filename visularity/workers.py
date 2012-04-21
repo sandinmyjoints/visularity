@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import json
 import threading
 import logging
 import Queue
@@ -28,6 +27,7 @@ original_corpus = [
     ]
 corpus_index_lock = threading.RLock()
 
+
 class StoppableThread(threading.Thread):
     def __init__(self, *args, **kwargs):
         super(StoppableThread, self).__init__(*args, **kwargs)
@@ -52,7 +52,6 @@ class SimilarityCalculator(StoppableThread):
 
         self.in_queue = in_queue
         self.out_queue = out_queue
-#        self.dictionary, self.tfidf_transformation, self.lsi_transformation, self.corpus, self.index = get_or_create_gensim_tools()
 
         # These are invariant
         self.dictionary, self.tfidf_transformation, self.lsi_transformation = load_gensim_tools()
@@ -83,14 +82,13 @@ class SimilarityCalculator(StoppableThread):
                 add_doc_to_index(doc, index, lsi_vec_doc, original_corpus)
 
                 sims = [s for s in index]
-                results = { "similarity_scores": {doc: sims_to_doc }}
+                results = {
+                    "document": doc,
+                    "similarity_scores": sims_to_doc
+                }
 
                 for cluster_type, cluster_func in CLUSTER_TYPES.iteritems():
                     results[cluster_type] = cluster_func(sims, original_corpus)
-
-#                dcluster_dict = simcluster.sims_to_dendrogram(sims, original_corpus)
-#                hcluster_dict = simcluster.sims_to_hcluster(sims, original_corpus)
-#                apcluster_dict = simcluster.sims_to_apcluster(sims, original_corpus)
 
             if self.out_queue:
                 self.out_queue.put(results)
@@ -103,14 +101,11 @@ class SimilarityCalculator(StoppableThread):
 
 def load_gensim_tools():
 
-    logger.info("Loading dictionary from %s" % DICTIONARY_FILE)
     dictionary = corpora.Dictionary.load_from_text(DICTIONARY_FILE)
 
     # TODO chain transformations
-    logger.info("Loading tfidf transformation from %s" % TFIDF_MODEL_FILE)
     tfidf_transformation = models.tfidfmodel.TfidfModel.load(TFIDF_MODEL_FILE)
 
-    logger.info("Loading dictionary from %s" % LSI_MODEL_FILE)
     lsi_transformation = models.lsimodel.LsiModel.load(LSI_MODEL_FILE)
 
     return dictionary, tfidf_transformation, lsi_transformation
@@ -118,15 +113,12 @@ def load_gensim_tools():
 
 def create_corpus(docs, word2id):
     with corpus_index_lock:
-        logger.debug("Creating corpus from %s" % docs)
         return corpora.TextCorpus(input=docs, word2id=word2id)
 
 
 def create_index(corpus, tfidf_transformation, lsi_transformation):
 
     with corpus_index_lock:
-
-        logger.info("Creating similarities index from %s" % corpus)
 
         # Ensure a dir exists to store the shards
         index_dir = SHARD_DIR
@@ -188,13 +180,10 @@ if __name__ == "__main__":
         sims = [s for s in index]
 
         dcluster_dict = simcluster.sims_to_dendrogram(sims, original_corpus)
-        json.dump(dcluster_dict, open("/tmp/output_dendrogram.json", "w+"))
         pprint.pprint(dcluster_dict)
 
         hcluster_dict = simcluster.sims_to_hcluster(sims, original_corpus)
-        json.dump(hcluster_dict, open("/tmp/output_flat.json", "w+"))
         pprint.pprint(hcluster_dict)
 
         apcluster_dict = simcluster.sims_to_apcluster(sims, original_corpus)
-        json.dump(apcluster_dict, open("/tmp/output_flat_ap.json", "w+"))
         pprint.pprint(apcluster_dict)

@@ -4,7 +4,6 @@
 
 {% block extrahead %}
 <script type="text/javascript" src="{{ url_for('static', filename='js/d3.v2.js') }}"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='js/libs/jquery-1.7.1.min.js') }}"></script>
 <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/pack.css') }}"/>
 {% endblock extrahead %}
 
@@ -49,22 +48,42 @@
 <h2>Dendrogram</h2>
 <div id="chart-dcluster"></div>
 
+{% endblock body %}
+
+{% block extrajs %}
+<script src="{{ url_for('static', filename='js/hookbox.js') }}" type="text/javascript"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/pack.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/cluster.js') }}"></script>
 <script type="text/javascript">
-    $(document).ready(function () {
-        $("#refresh").on("click", function (event) {
-            event.preventDefault();
-            visualize_flat("{{ url_for('cluster', type='hcluster') }}", "#chart-hcluster");
-            visualize_flat("{{ url_for('cluster', type='apcluster') }}", "#chart-apcluster");
-            visualize_dendro("{{ url_for('cluster', type='dcluster') }}", "#chart-dcluster");
-
-        });
+    function refresh() {
         visualize_flat("{{ url_for('cluster', type='hcluster') }}", "#chart-hcluster");
         visualize_flat("{{ url_for('cluster', type='apcluster') }}", "#chart-apcluster");
         visualize_dendro("{{ url_for('cluster', type='dcluster') }}", "#chart-dcluster");
+    }
+
+    $(document).ready(function () {
+        $("#refresh").on("click", function (event) {
+            event.preventDefault();
+            refresh();
+        });
+
+//        hookbox.logging.get('net.protocols.rtjp').setLevel(hookbox.logging.DEBUG);
+        conn = hookbox.connect('http://127.0.0.1:8001/');
+
+        conn.onSubscribed = function (channel_name, subscription) {
+
+            console.log("subscription.history was " + subscription.history);
+
+            subscription.onPublish = function (frame) {
+                console.log("frame.payload was " + frame.payload);
+                refresh();
+            };
+
+        };
+
+        // subscribe to the channel
+        var hookboxChannel = '{{ hookbox_channel }}';
+        conn.subscribe(hookboxChannel);
     });
 </script>
-
-
-{% endblock body %}
+{% endblock extrajs %}

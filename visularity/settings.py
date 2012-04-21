@@ -7,7 +7,12 @@ from visularity.cluster import simcluster
 DEBUG = True
 SECRET_KEY = "yoursecretkeyhere"
 
+# Hookbox settings
+CHANNEL_NAME = "refresh"
+API_SECRET = "secret"
+
 # Visularity settings
+SERVER_ADDRESS = "127.0.0.1:5000"
 PROJECT_ROOT = os.path.dirname(__file__)
 GENSIM_DATA_ROOT = "/home/wbert/gensimdata/"
 VIS_DATA_ROOT = os.path.join(PROJECT_ROOT, "data")

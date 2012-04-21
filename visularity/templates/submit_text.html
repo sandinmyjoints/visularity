@@ -5,10 +5,71 @@
 {% block body %}
 <h1>Submit a sentence or two.</h1>
 <h3>A fact or facts would work well.</h3>
-<form action="/" method="GET">
+<form action="" method="GET">
     <label for="id_text">Submit a sentence or two.</label>
-    <input id="id_text" type="text" size="100" maxlength="100" name="text">
-    <input type="submit" name="submit" value="Submit">
+    <textarea rows="4" cols="40" id="id_text" name="text"></textarea>
+    <input type="submit" name="submit" id="id_submit" value="Submit">
 </form>
 
+<h2>Submitted items</h2>
+<div id="submitted">
+    <ul>
+
+    </ul>
+</div>
+
 {% endblock body %}
+
+{% block extrajs %}
+<script src="{{ url_for('static', filename='js/hookbox.js') }}" type="text/javascript"></script>
+
+<script type="text/javascript">
+    $(function () {
+
+        function addToSubmitted(msg) {
+            $('#submitted ul').prepend('<li>Submitted: ' + msg + '</li>');
+        }
+
+        function addToCalculated(msg) {
+            $('#submitted ul').prepend('<li>Calculated: ' + msg + '</li>');
+        }
+
+        $('#id_submit').click(function (e) {
+            var submitted_text = $('#id_text');
+
+//            conn.publish('refresh', submitted_text.val());
+
+            $.ajax({
+                        url: "{{ url_for('submit_text') }}",
+                        type:"POST",
+                        data: { "text": submitted_text.val() }
+                    }
+            )
+            .done(function (data) {
+                        addToSubmitted(submitted_text.val());
+                        submitted_text.val('');
+                    })
+            .error(function (request, textStatus, error) {
+                        $("#messages").prepend("<div class='message submit_text'>Unable to submit. Please try again.</div>");
+                    });
+            e.preventDefault();
+        });
+
+        // connect to the hookbox server, running locally on port 8001
+        conn = hookbox.connect('http://127.0.0.1:8001/');
+
+        // once subscribed, listen for new messages being published
+        // to the channel and display them in the output div
+        conn.onSubscribed = function (channel_name, subscription) {
+            subscription.onPublish = function (frame) {
+                addToCalculated(frame.payload);
+
+            };
+        };
+
+        // subscribe to the channel
+        var hookboxChannel = '{{ hookbox_channel }}';
+        conn.subscribe(hookboxChannel);
+    });
+</script>
+{% endblock extrajs %}
