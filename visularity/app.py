@@ -3,6 +3,7 @@ from collections import OrderedDict, defaultdict
 import Queue
 import json
 import logging
+import subprocess
 import threading
 import sys
 
@@ -11,7 +12,13 @@ from flask.helpers import jsonify
 from flask.wrappers import Response
 import requests
 
-import workers
+import similarity
+
+
+logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(levelname)s:%(name)s:%(threadName)s: %(message)s")
+logger = logging.getLogger(__name__)
+#logger = logging
+
 
 try:
     import settings
@@ -21,10 +28,7 @@ except Exception, ex:
 app = Flask(__name__)
 app.config.from_object(__name__)
 
-
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format="%(levelname)s:%(name)s:%(threadName)s: %(message)s")
-logger = logging.getLogger(__name__)
-#logger = logging
+CHANNEL_NAME = "refresh"  # hookbox channel
 
 
 # App globals
@@ -32,13 +36,15 @@ similarity_scores = OrderedDict()
 cluster_data = defaultdict(dict, **{k: {"name": "top", "size": 10} for k in settings.CLUSTER_TYPES.iterkeys()})
 dict_and_scores_lock = threading.RLock()
 counter = 0
-
+hookbook_process = None
 new_submissions = Queue.Queue()
 processed_submissions = Queue.Queue()
 
+
+# Endpoints
 @app.route('/')
 def submit_text_form():
-    return render_template('submit_text.html', hookbox_channel=settings.CHANNEL_NAME)
+    return render_template('submit_text.html', hookbox_channel=CHANNEL_NAME, hookbox_ip=settings.SERVER_IP)
 
 
 @app.route('/submit_text', methods=['POST'])
@@ -87,7 +93,14 @@ def connect():
 def visualize():
     global similarity_scores
 
-    return render_template('visualize.html', computed_matches=similarity_scores, hookbox_channel=settings.CHANNEL_NAME)
+    return render_template('visualize.html', hookbox_channel=CHANNEL_NAME, hookbox_ip=settings.SERVER_IP)
+
+
+@app.route('/similarity_scores')
+def similarity_scores():
+    global similarity_scores
+    with dict_and_scores_lock:
+        return Response(json.dumps(similarity_scores))
 
 
 @app.route('/cluster/<type>/')
@@ -97,7 +110,7 @@ def cluster(type):
         return jsonify(**cluster_data[type])
 
 
-class DataRefresher(workers.StoppableThread):
+class DataRefresher(similarity.StoppableThread):
 
     def __init__(self, processed_submissions, **kwargs):
         super(DataRefresher, self).__init__(**kwargs)
@@ -109,44 +122,73 @@ class DataRefresher(workers.StoppableThread):
         while not self.stopped():
             try:
                 work_done = self.processed_submissions.get(timeout=1)
-                with dict_and_scores_lock:
+            except Queue.Empty:
+                continue
+
+            with dict_and_scores_lock:
 #                    similarity_scores = work_done["similarity_scores"]
 
-                    for cluster_type in settings.CLUSTER_TYPES:
-                        cluster_data[cluster_type] = work_done[cluster_type]
+                for cluster_type in settings.CLUSTER_TYPES:
+                    cluster_data[cluster_type] = work_done[cluster_type]
 
                 # tell hookbox clients to refresh
                 params = {
                     "payload": json.dumps([work_done["document"]]),  # hookbox wants json in the query string
-                    "channel_name": settings.CHANNEL_NAME,
+                    "channel_name": CHANNEL_NAME,
                     "security_token": settings.API_SECRET,
                 }
-                r = requests.get("http://127.0.0.1:8001/web/publish", params=params)
+                r = requests.get("http://%s:8001/web/publish" % settings.SERVER_IP, params=params)
                 if r.status_code != 200:
                     logger.warning("got %d status code sending refresh message to hookbox" % r.status_code)
 
                 self.processed_submissions.task_done()
-            except Queue.Empty:
-                continue
 
         logger.info("exiting")
 
 
-if __name__ == '__main__':
-    similarity_calculator = workers.SimilarityCalculator(name="calculator", in_queue=new_submissions, out_queue=processed_submissions)
-    similarity_calculator.start()
+def cleanup():
+    global hookbox_process, similarity_calculator, data_refresher
 
-    data_refresher = DataRefresher(name="refresher", processed_submissions=processed_submissions)
-    data_refresher.start()
+    if hookbox_process:
+        hookbox_process.kill()
 
-    app.run()
-    #    app.run(host='0.0.0.0')
+    if not similarity_calculator.stopped():
+        similarity_calculator.stop()
+
+    if not data_refresher.stopped():
+        data_refresher.stop()
+
+    similarity_calculator.join()
+    data_refresher.join()
 
 
 @atexit.register
-def stop_consumer():
+def at_exit_cleanup():
     logger.debug("atexit")
-    similarity_calculator.stop()
-    data_refresher.stop()
-    similarity_calculator.join()
-    data_refresher.join()
+    cleanup()
+
+
+if __name__ == '__main__':
+
+    # Start hookbox server
+    import shlex
+    args = shlex.split("hookbox --cb-single-url=http://%s:%s/hookbox/ -r %s --admin-password=%s"
+    % (settings.HOST, settings.PORT, settings.API_SECRET, settings.ADMIN_PASSWORD))
+    hookbox_process = subprocess.Popen(args)
+
+    # Start calculator thread
+    similarity_calculator = similarity.SimilarityCalculator(name="calculator", in_queue=new_submissions, out_queue=processed_submissions)
+    similarity_calculator.start()
+
+    # Start data refreshing thread
+    data_refresher = DataRefresher(name="refresher", processed_submissions=processed_submissions)
+    data_refresher.start()
+
+    # Start flask app
+    try:
+        app.run(host=settings.HOST, port=settings.PORT)
+    finally:
+        cleanup()
+
+
+

@@ -11,14 +11,13 @@
 
 <h1>Similarity Scores</h1>
 
-{% if computed_matches %}
-<table>
+<table id="similarity_scores">
     <thead>
-    <th>Query</th>
-    <th>Score against index terms</th>
+    <th></th>
     </thead>
     <tbody>
-    {% for query, sim_scores in computed_matches.iteritems() %}
+    {% if computed_matches %}
+    {% for doc, sim_scores in computed_matches.iteritems() %}
     <tr>
         <td>{{ query }}</td>
         <td>
@@ -30,19 +29,16 @@
         </td>
     </tr>
     {% endfor %}
+    {% endif %}
     </tbody>
 </table>
-{% else %}
-<p>Nothing yet.</p>
-{% endif %}
 
 <h1>Similarity Visualization</h1>
-<button id="refresh" name="Refresh" value="Refresh">Refresh</button>
 
-<h2>Hierarchical cluster</h2>
+<h2>Hierarchical</h2>
 <div id="chart-hcluster"></div>
 
-<h2>Affinity Propagation cluster</h2>
+<h2>Affinity Propagation</h2>
 <div id="chart-apcluster"></div>
 
 <h2>Dendrogram</h2>
@@ -59,6 +55,11 @@
         visualize_flat("{{ url_for('cluster', type='hcluster') }}", "#chart-hcluster");
         visualize_flat("{{ url_for('cluster', type='apcluster') }}", "#chart-apcluster");
         visualize_dendro("{{ url_for('cluster', type='dcluster') }}", "#chart-dcluster");
+        show_scores("{{ url_for('similarity_scores') }}", "#table-scores");
+    }
+
+    function show_scores(url, elm) {
+
     }
 
     $(document).ready(function () {
@@ -68,11 +69,10 @@
         });
 
 //        hookbox.logging.get('net.protocols.rtjp').setLevel(hookbox.logging.DEBUG);
-        conn = hookbox.connect('http://127.0.0.1:8001/');
+        var hookbox_server = 'http://{{ hookbox_ip }}';
+        conn = hookbox.connect(hookbox_server + ':8001/');
 
         conn.onSubscribed = function (channel_name, subscription) {
-
-            console.log("subscription.history was " + subscription.history);
 
             subscription.onPublish = function (frame) {
                 console.log("frame.payload was " + frame.payload);

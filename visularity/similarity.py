@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import os
 
 import threading
 import logging
@@ -8,23 +9,19 @@ import sys
 from gensim import models, corpora, similarities
 
 try:
-    from settings import *
+    import settings
 except Exception, ex:
     raise Exception("settings could not be imported: %s" % ex)
 
 
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-# Shared among all threads:
+# Shared among all worker threads:
 corpus, index = None, None
-original_corpus = [
-    "The bus drove along the highway, full of many people going from one city to another city that night.",
-    "A whale can eat up to fifteen tons of plankton and other fish every day of its life.",
-    "The distance to the nearest star is measured in light years, the distance light travels at its fantastic speed over an entire year.",
-    "Planets are giant bodies of gas or rock out in the vacuum of space.",
-    ]
+original_corpus = settings.SEED_CORPUS
+
 corpus_index_lock = threading.RLock()
 
 
@@ -77,17 +74,17 @@ class SimilarityCalculator(StoppableThread):
             lsi_vec_doc = get_transformed_doc(doc, self.dictionary, self.tfidf_transformation, self.lsi_transformation)
 
             with corpus_index_lock:
-                sims_to_doc = calc_sims_to_doc(index, lsi_vec_doc, original_corpus)
+#                sims_to_doc = calc_sims_to_doc(index, lsi_vec_doc, original_corpus)
 
                 add_doc_to_index(doc, index, lsi_vec_doc, original_corpus)
 
                 sims = [s for s in index]
                 results = {
                     "document": doc,
-                    "similarity_scores": sims_to_doc
+                    "similarity_scores": sims
                 }
 
-                for cluster_type, cluster_func in CLUSTER_TYPES.iteritems():
+                for cluster_type, cluster_func in settings.CLUSTER_TYPES.iteritems():
                     results[cluster_type] = cluster_func(sims, original_corpus)
 
             if self.out_queue:
@@ -101,12 +98,12 @@ class SimilarityCalculator(StoppableThread):
 
 def load_gensim_tools():
 
-    dictionary = corpora.Dictionary.load_from_text(DICTIONARY_FILE)
+    dictionary = corpora.Dictionary.load_from_text(settings.DICTIONARY_FILE)
 
     # TODO chain transformations
-    tfidf_transformation = models.tfidfmodel.TfidfModel.load(TFIDF_MODEL_FILE)
+    tfidf_transformation = models.tfidfmodel.TfidfModel.load(settings.TFIDF_MODEL_FILE)
 
-    lsi_transformation = models.lsimodel.LsiModel.load(LSI_MODEL_FILE)
+    lsi_transformation = models.lsimodel.LsiModel.load(settings.LSI_MODEL_FILE)
 
     return dictionary, tfidf_transformation, lsi_transformation
 
@@ -121,7 +118,7 @@ def create_index(corpus, tfidf_transformation, lsi_transformation):
     with corpus_index_lock:
 
         # Ensure a dir exists to store the shards
-        index_dir = SHARD_DIR
+        index_dir = settings.SHARD_DIR
         if not os.path.exists(index_dir):
             os.makedirs(index_dir)
 
@@ -168,6 +165,7 @@ if __name__ == "__main__":
     dictionary, tfidf_transformation, lsi_transformation = load_gensim_tools()
     corpus = create_corpus(original_corpus, dictionary)
     index = create_index(corpus, tfidf_transformation, lsi_transformation)
+
     while True:
         doc = raw_input("> ")
 

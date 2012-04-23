@@ -56,7 +56,8 @@
         });
 
         // connect to the hookbox server, running locally on port 8001
-        conn = hookbox.connect('http://127.0.0.1:8001/');
+        var hookbox_server = 'http://{{ hookbox_ip }}';
+        conn = hookbox.connect(hookbox_server + ':8001/');
 
         // once subscribed, listen for new messages being published
         // to the channel and display them in the output div

@@ -106,8 +106,6 @@ def sims_to_hcluster(sim_scores, origin_corpus=None):
 
 def sims_to_apcluster(sim_scores, origin_corpus=None):
     cluster_centers_indices, labels = affinity_propagation(sim_scores)
-    print "indices: %s" % cluster_centers_indices
-    print "labels: %s" % labels
 
     ap_cluster_dict = {}
     ap_cluster_dict["name"] = "top"
