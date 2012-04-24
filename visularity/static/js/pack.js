@@ -35,9 +35,11 @@ var visualize_flat = function (data_url, chart_selector) {
             });
 
         node.append("circle")
+            .transition().delay(100).duration(100)
             .attr("r", function (d) {
                 return d.r;
-            });
+            })
+        ;
 
         node.filter(
             function (d) {

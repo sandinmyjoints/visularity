@@ -88,7 +88,7 @@ class SimilarityCalculator(StoppableThread):
                 sims = [s for s in index]
                 results = {
                     "documents": docs,
-                    "similarity_scores": sims
+                    "similarity_scores": [[round(score, 3) for score in sim_arr] for sim_arr in sims]
                 }
 
                 for cluster_type, cluster_func in settings.CLUSTER_TYPES.iteritems():

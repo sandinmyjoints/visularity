@@ -8,30 +8,11 @@
 {% endblock extrahead %}
 
 {% block body %}
+        <button id="refresh">Refresh</button>
 
 <h1>Similarity Scores</h1>
 
-<table id="similarity_scores">
-    <thead>
-    <th></th>
-    </thead>
-    <tbody>
-    {% if computed_matches %}
-    {% for doc, sim_scores in computed_matches.iteritems() %}
-    <tr>
-        <td>{{ query }}</td>
-        <td>
-            <ol>
-                {% for score, text in sim_scores %}
-                <li>{{ score }} {{ text }}</li>
-                {% endfor %}
-            </ol>
-        </td>
-    </tr>
-    {% endfor %}
-    {% endif %}
-    </tbody>
-</table>
+<div id="similarity-scores"></div>
 
 <h1>Similarity Visualization</h1>
 
@@ -47,19 +28,16 @@
 {% endblock body %}
 
 {% block extrajs %}
-<script src="{{ url_for('static', filename='js/hookbox.js') }}" type="text/javascript"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/hookbox.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/pack.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/cluster.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/vis.js') }}"></script>
 <script type="text/javascript">
     function refresh() {
         visualize_flat("{{ url_for('cluster', type='hcluster') }}", "#chart-hcluster");
         visualize_flat("{{ url_for('cluster', type='apcluster') }}", "#chart-apcluster");
         visualize_dendro("{{ url_for('cluster', type='dcluster') }}", "#chart-dcluster");
-        show_scores("{{ url_for('similarity_scores') }}", "#table-scores");
-    }
-
-    function show_scores(url, elm) {
-
+        show_scores("{{ url_for('similarity_scores') }}", "#similarity-scores");
     }
 
     $(document).ready(function () {

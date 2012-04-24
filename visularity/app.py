@@ -31,7 +31,7 @@ CHANNEL_NAME = "refresh"  # hookbox channel
 
 
 # App globals
-similarity_scores = OrderedDict()
+similarity_score_matrix = OrderedDict()
 cluster_data = defaultdict(dict, **{k: {"name": "top", "size": 10} for k in settings.CLUSTER_TYPES.iterkeys()})
 dict_and_scores_lock = threading.RLock()
 user_counter = 0
@@ -96,9 +96,9 @@ def visualize():
 
 @app.route('/similarity_scores')
 def similarity_scores():
-    global similarity_scores
+    global similarity_score_matrix
     with dict_and_scores_lock:
-        return Response(json.dumps(similarity_scores))
+        return Response(json.dumps(similarity_score_matrix))
 
 
 @app.route('/cluster/<type>/')
@@ -117,7 +117,7 @@ class DataRefresher(similarity.StoppableThread):
         self.processed_submissions = processed_submissions
 
     def run(self):
-        global cluster_data, similarity_scores
+        global cluster_data, similarity_score_matrix
 
         while not self.stopped():
             try:
@@ -130,8 +130,12 @@ class DataRefresher(similarity.StoppableThread):
                 for cluster_type in settings.CLUSTER_TYPES:
                     cluster_data[cluster_type] = work_done[cluster_type]
 
+                documents = work_done["documents"]
+                similarity_score_matrix = work_done["similarity_scores"]
+
                 # tell hookbox clients to refresh
                 params = {
+                    # TODO This sends every calculated query to every client--fix this
                     "payload": json.dumps(work_done["documents"]),  # hookbox wants json in the query string
                     "channel_name": CHANNEL_NAME,
                     "security_token": settings.HOOKBOX_API_SECRET,
