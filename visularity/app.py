@@ -15,10 +15,9 @@ import requests
 import similarity
 
 
+# Config
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(levelname)s:%(name)s:%(threadName)s: %(message)s")
 logger = logging.getLogger(__name__)
-#logger = logging
-
 
 try:
     import settings
@@ -35,7 +34,7 @@ CHANNEL_NAME = "refresh"  # hookbox channel
 similarity_scores = OrderedDict()
 cluster_data = defaultdict(dict, **{k: {"name": "top", "size": 10} for k in settings.CLUSTER_TYPES.iterkeys()})
 dict_and_scores_lock = threading.RLock()
-counter = 0
+user_counter = 0
 hookbook_process = None
 new_submissions = Queue.Queue()
 processed_submissions = Queue.Queue()
@@ -58,7 +57,7 @@ def submit_text():
 @app.route('/hookbox/', methods=['GET', 'POST'])
 def connect():
 
-    global counter
+    global user_counter
     response_data = None
 
     if request.method == 'POST':
@@ -67,8 +66,8 @@ def connect():
 
         logger.debug("hookbox action: %s" % action)
         if action == 'connect':
-            counter += 1
-            response_data = [True, {'name': 'User%d' % counter}]
+            user_counter += 1
+            response_data = [True, {'name': 'User%d' % user_counter}]
 
         elif action == 'subscribe':
             response_data = [True, {}]
@@ -91,7 +90,6 @@ def connect():
 
 @app.route('/visualize/')
 def visualize():
-    global similarity_scores
 
     return render_template('visualize.html', hookbox_channel=CHANNEL_NAME, hookbox_ip=settings.SERVER_IP)
 
@@ -111,6 +109,8 @@ def cluster(type):
 
 
 class DataRefresher(similarity.StoppableThread):
+    """Pulls similarity scores off the queue and makes them available to the Flask app. Tells hookbox to tell
+    clients to refresh when new data is available."""
 
     def __init__(self, processed_submissions, **kwargs):
         super(DataRefresher, self).__init__(**kwargs)
@@ -126,16 +126,15 @@ class DataRefresher(similarity.StoppableThread):
                 continue
 
             with dict_and_scores_lock:
-#                    similarity_scores = work_done["similarity_scores"]
 
                 for cluster_type in settings.CLUSTER_TYPES:
                     cluster_data[cluster_type] = work_done[cluster_type]
 
                 # tell hookbox clients to refresh
                 params = {
-                    "payload": json.dumps([work_done["document"]]),  # hookbox wants json in the query string
+                    "payload": json.dumps(work_done["documents"]),  # hookbox wants json in the query string
                     "channel_name": CHANNEL_NAME,
-                    "security_token": settings.API_SECRET,
+                    "security_token": settings.HOOKBOX_API_SECRET,
                 }
                 r = requests.get("http://%s:8001/web/publish" % settings.SERVER_IP, params=params)
                 if r.status_code != 200:
@@ -173,7 +172,7 @@ if __name__ == '__main__':
     # Start hookbox server
     import shlex
     args = shlex.split("hookbox --cb-single-url=http://%s:%s/hookbox/ -r %s --admin-password=%s"
-    % (settings.HOST, settings.PORT, settings.API_SECRET, settings.ADMIN_PASSWORD))
+    % (settings.HOST, settings.PORT, settings.HOOKBOX_API_SECRET, settings.HOOKBOX_ADMIN_PASSWORD))
     hookbox_process = subprocess.Popen(args)
 
     # Start calculator thread

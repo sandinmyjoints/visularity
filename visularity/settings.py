@@ -10,13 +10,14 @@ DEBUG = True
 SECRET_KEY = "yoursecretkeyhere"
 
 # Hookbox settings
-API_SECRET = "secret"
-ADMIN_PASSWORD = "admin"
+HOOKBOX_API_SECRET = "secret"
+HOOKBOX_ADMIN_PASSWORD = "admin"
 
 # Visularity settings
-SERVER_IP = "192.168.1.102"
+SERVER_IP = "192.168.1.102"  # Need to set this to whatever IP your machine is using
 SERVER_ADDRESS = "%s:%d" % (SERVER_IP, PORT)
 PROJECT_ROOT = os.path.dirname(__file__)
+
 GENSIM_DATA_ROOT = "/home/wbert/gensimdata/"
 VIS_DATA_ROOT = os.path.join(PROJECT_ROOT, "data")
 SEED_CORPUS = [
@@ -30,7 +31,6 @@ LSI_MODEL_FILE = os.path.join(GENSIM_DATA_ROOT, "wiki_en_model.lsi")
 TFIDF_MODEL_FILE = os.path.join(GENSIM_DATA_ROOT, "wiki_en_tfidf.model")
 DICTIONARY_FILE = os.path.join(GENSIM_DATA_ROOT, "wiki_en_wordids.txt")
 SHARD_DIR = os.path.join('/tmp', "index_shards")
-
 
 CLUSTER_TYPES = {
     "hcluster": simcluster.sims_to_hcluster,
