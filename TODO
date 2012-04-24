@@ -1,4 +1,8 @@
+ * show document texts for col/row 0 in the table
+ * show full document when you mouseover a cluster
+ * fix see other people's calculated texts bug
  * d3 layout, sizing, etc
- * multiprocess for calculating index
- * gensimtools
- * Flask CORS headers
+ * improvements to clustering parameters
+ * better submit text ui (feedback on entered text quality, highlight submitted yellow, calculated green, etc)
+ * transformation model chaining
+ * fancy d3 transitions!

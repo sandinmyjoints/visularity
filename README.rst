@@ -1,6 +1,8 @@
-# Visularity #
+Visularity
+==========
 
-## Similarity cluster visualization ##
+Similarity cluster visualization
+--------------------------------
 
 Experimental.
 
