@@ -91,7 +91,11 @@ def connect():
 @app.route('/visualize/')
 def visualize():
 
-    return render_template('visualize.html', hookbox_channel=CHANNEL_NAME, hookbox_ip=settings.SERVER_IP)
+    return render_template('visualize.html',
+        hookbox_channel=CHANNEL_NAME,
+        hookbox_ip=settings.SERVER_IP,
+        server_address=settings.SERVER_IP,
+    )
 
 
 @app.route('/similarity_scores')

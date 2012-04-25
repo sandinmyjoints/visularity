@@ -3,19 +3,41 @@
 {% block title %}Submit some text - {{ super() }}{% endblock title %}
 
 {% block body %}
-<h1>Submit a sentence or two.</h1>
-<h3>A fact or facts would work well.</h3>
-<form action="" method="GET">
-    <label for="id_text">Submit a sentence or two.</label>
-    <textarea rows="4" cols="40" id="id_text" name="text"></textarea>
-    <input type="submit" name="submit" id="id_submit" value="Submit">
-</form>
+<div class='container'>
 
-<h2>Submitted items</h2>
-<div id="submitted">
-    <ul>
+    <div id="messages">
+        {% for message in get_flashed_messages() %}
+        <div class="message">{{ message }}</div>
+        {% endfor %}
+        {% block messages %}
+        <div class="message subscribing">Subscribing to channel...</div>
 
-    </ul>
+        {% endblock messages %}
+    </div>
+
+    <div class="content">
+
+        <h1>Submit a sentence or two.</h1>
+        <h4>Statements or facts can work well. Examples:</h4>
+        <ul>
+            <li>Some people think good programming is like good writing.</li>
+            <li>Planets are giant bodies of gas or rock out in the vacuum of space.</li>
+            <li>The subway was late so I ran through the streets to the meeting.</li>
+        </ul>
+        <form action="" method="GET">
+            <!--<label for="id_text">Submit a sentence or two.</label>-->
+            <textarea rows="4" cols="40" id="id_text" name="text" disabled="disabled"></textarea>
+            <input type="submit" name="submit" id="id_submit" value="Submit" disabled="disabled">
+        </form>
+
+        <h2>Submitted items</h2>
+
+        <div id="submitted">
+            <ul>
+
+            </ul>
+        </div>
+    </div>
 </div>
 
 {% endblock body %}
@@ -34,24 +56,36 @@
             $('#submitted ul').prepend('<li>Calculated: ' + msg + '</li>');
         }
 
+        function showMessage(msg) {
+            $('#messages').prepend('<div class="message">' + msg + '</div>');
+        }
+
+        function clearMessages() {
+            $('#messages').empty();
+
+        }
+
         $('#id_submit').click(function (e) {
+            clearMessages();
             var submitted_text = $('#id_text');
+            if(submitted_text.val().length > 20)
+            {
+                $.ajax({url:"{{ url_for('submit_text') }}",
+                    type:"POST",
+                    data:{ "text":submitted_text.val() }
+                })
+                        .done(function (data) {
+                            addToSubmitted(submitted_text.val());
+                            submitted_text.val('');
+                        })
+                        .error(function (request, textStatus, error) {
+                            showMessage("Unable to submit. Please try again.");
+                        });
+            }
+            else {
+                showMessage("Text is too short. Please add a bit more and try again.");
+            }
 
-//            conn.publish('refresh', submitted_text.val());
-
-            $.ajax({
-                        url: "{{ url_for('submit_text') }}",
-                        type:"POST",
-                        data: { "text": submitted_text.val() }
-                    }
-            )
-            .done(function (data) {
-                        addToSubmitted(submitted_text.val());
-                        submitted_text.val('');
-                    })
-            .error(function (request, textStatus, error) {
-                        $("#messages").prepend("<div class='message submit_text'>Unable to submit. Please try again.</div>");
-                    });
             e.preventDefault();
         });
 
@@ -62,6 +96,11 @@
         // once subscribed, listen for new messages being published
         // to the channel and display them in the output div
         conn.onSubscribed = function (channel_name, subscription) {
+            console.log("Subscribed");
+            $("#id_text").prop("disabled", false);
+            $("#id_submit").prop("disabled", false);
+            $("#messages > .subscribing").removeClass('subscribing').addClass('subscribed').text('Subscribed');
+
             subscription.onPublish = function (frame) {
                 addToCalculated(frame.payload);
 

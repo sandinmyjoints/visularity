@@ -1,29 +1,50 @@
 {% extends "base.html" %}
 
-{% block title %}Visualize - {{ super() }}{% endblock title %}
-
 {% block extrahead %}
 <script type="text/javascript" src="{{ url_for('static', filename='js/d3.v2.js') }}"></script>
 <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/pack.css') }}"/>
 {% endblock extrahead %}
 
 {% block body %}
+<div class="centered-container">
+
+    <div id="messages">
+        {% for message in get_flashed_messages() %}
+        <div class="message">{{ message }}</div>
+        {% endfor %}
+        {% block messages %}
+        <div class="message subscribing">Subscribing to channel...</div>
+
+        {% endblock messages %}
+    </div>
+
+    <div class="content">
+
+        {% if server_address %}
+        <div class="banner">&raquo; Visit <span class="highlight">{{ server_address }}:5000</span> to submit text.</div>
+        {% endif %}
+
         <button id="refresh">Refresh</button>
 
-<h1>Similarity Scores</h1>
+        <h1>Similarity Scores</h1>
 
-<div id="similarity-scores"></div>
+        <div id="similarity-scores"></div>
 
-<h1>Similarity Visualization</h1>
+        <h1>Similarity Visualization</h1>
 
-<h2>Hierarchical</h2>
-<div id="chart-hcluster"></div>
+        <h2>Hierarchical</h2>
 
-<h2>Affinity Propagation</h2>
-<div id="chart-apcluster"></div>
+        <div id="chart-hcluster"></div>
 
-<h2>Dendrogram</h2>
-<div id="chart-dcluster"></div>
+        <h2>Affinity Propagation</h2>
+
+        <div id="chart-apcluster"></div>
+
+        <h2>Dendrogram</h2>
+
+        <div id="chart-dcluster"></div>
+    </div>
+</div>
 
 {% endblock body %}
 
@@ -51,6 +72,13 @@
         conn = hookbox.connect(hookbox_server + ':8001/');
 
         conn.onSubscribed = function (channel_name, subscription) {
+            console.log("Subscribed");
+            $("#messages > .subscribing")
+                    .removeClass('subscribing')
+                    .addClass('subscribed')
+                    .text('Subscribed')
+                    .delay(2000)
+                    .remove();
 
             subscription.onPublish = function (frame) {
                 console.log("frame.payload was " + frame.payload);

@@ -102,7 +102,67 @@ td { vertical-align: top; }
   h2, h3 { page-break-after: avoid; }
 }
 
+body {
+    background-color: #AAA;
+
+}
+
+div#messages {
+    min-height: 2em;
+}
 
 div.message {
-   background-color: #bad0d1;
+    padding: 0.2em;
+    background-color: #DDDDFE;
+}
+
+div.subscribing {
+    background-color: #DBB; !important
+}
+
+div.subscribed {
+    background-color: #BDB; !important
+}
+
+div.container {
+    padding: 1em;
+    background-color: #FFF;
+    width: 960px;
+    margin: auto;
+    min-height: 100%;
+}
+
+div.centered-container {
+    background-color: #FFF;
+
+    text-align: center;
+    width: 100%;
+    margin: auto;
+    min-height: 100%;
+
+}
+
+div.banner {
+    border: 1px solid #444;
+    padding: .6em;
+    width: 50%;
+    margin: 1em auto 1em auto;
+    background-color: #777;
+    color: #FFF;
+    text-align: center;
+    font-weight: bold;
+    font-size: larger;
+}
+
+.centered {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+table.similarity-scores {
+    width:75%;
+}
+
+.highlight {
+    color: #6ECEFE;
 }

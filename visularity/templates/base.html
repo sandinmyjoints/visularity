@@ -7,18 +7,16 @@
     {% block extrahead %}{% endblock extrahead %}
 </head>
 <body>
-<div id="messages">
-    {% for message in get_flashed_messages() %}
-    <div class="message">{{ message }}</div>
-    {% endfor %}
-</div>
 
 {% block body %}
+
 {% endblock body %}
 
 <script type="text/javascript" src="{{ url_for('static', filename='js/libs/jquery-1.7.1.min.js') }}"></script>
 
 {% block extrajs %}
+
 {% endblock extrajs %}
+
 </body>
 </html>
