@@ -1,4 +1,5 @@
  * fix see other people's calculated texts bug
+ * fix weird dendrogram link fill color
  * similarity scores coloring based on scaled scores
  * d3 layout, sizing, etc
  * improvements to clustering parameters

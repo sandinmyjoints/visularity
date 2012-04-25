@@ -36,7 +36,7 @@ def _make_cluster(Z, index, origin_corpus=None):
     if origin_corpus:
         try:
             datum = origin_corpus[index]
-            c.update({ "name": ": ".join([c["name"], str(datum)])})
+            c["name"] = str(datum)
         except IndexError, ex:
             pass
 

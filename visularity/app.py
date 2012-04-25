@@ -81,6 +81,12 @@ def connect():
         elif action == 'create_channel':
             response_data = [True, {}]
 
+        elif action == 'destroy_channel':
+            response_data = [True, {}]
+
+        elif action == 'disconnect':
+            response_data = [True, {}]
+
         else:
             logger.warning('got unknown hookbox action %s' % action)
             response_data = [False, {}]
