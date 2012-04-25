@@ -9,6 +9,7 @@ function show_scores(data_url, elm) {
             .append("table")
             .style("border-collapse", "collapse")
             .style("border", "2px black solid")
+            .classed("centered similarity-scores", true)
 
             .selectAll("tr")
             .data(dataset)
@@ -21,11 +22,21 @@ function show_scores(data_url, elm) {
             .enter().append("td")
             .style("border", "1px black solid")
             .style("padding", "10px")
-            .on("mouseover", function () {
-                d3.select(this).style("background-color", "aliceblue")
-            })
-            .on("mouseout", function () {
-                d3.select(this).style("background-color", "white")
+//            .on("mouseover", function () {
+//                d3.select(this).style("background-color", "aliceblue")
+//            })
+//            .on("mouseout", function () {
+//                d3.select(this).style("background-color", "white")
+//            })
+            .style("background-color", function(d, i) {
+                if (d==1 || d=="") {
+                    return "gray";
+                }
+                if(isNaN(parseFloat(d))) {
+                    return "#ededef";
+                }
+
+                return d > 0.2 ? "lightgreen": "pink"
             })
             .text(function (d) {
                 return d;

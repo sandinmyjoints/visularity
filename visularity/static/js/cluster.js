@@ -1,10 +1,10 @@
 var visualize_dendro = function (data_url, chart_selector) {
 
-    var w = 800,
-        h = 800;
+    var w = 900,
+        h = 1000;
 
     var cluster = d3.layout.cluster()
-        .size([h, w - 460]);
+        .size([h, w - 160]);
 
     var diagonal = d3.svg.diagonal()
         .projection(function (d) {

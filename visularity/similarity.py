@@ -21,7 +21,11 @@ logger = logging.getLogger(__name__)
 
 # Shared among all worker threads:
 corpus, index = None, None
-original_corpus = settings.SEED_CORPUS
+try:
+    original_corpus = settings.SEED_CORPUS
+    _ = settings.SEED_CORPUS[0]
+except IndexError:
+    original_corpus = []
 corpus_index_lock = threading.RLock()
 
 
@@ -84,11 +88,16 @@ class SimilarityCalculator(StoppableThread):
             with corpus_index_lock:
 
                 add_docs_to_index(doc_pairs, index, original_corpus)
+                similarity_scores = [[''] + [doc for doc in original_corpus]]
 
                 sims = [s for s in index]
+                similarity_scores.extend([[round(score, 3) for score in sim_arr] for sim_arr in sims])
+                for i, doc in enumerate(original_corpus):
+                    similarity_scores[i+1].insert(0, doc)
+
                 results = {
                     "documents": docs,
-                    "similarity_scores": [[round(score, 3) for score in sim_arr] for sim_arr in sims]
+                    "similarity_scores": similarity_scores
                 }
 
                 for cluster_type, cluster_func in settings.CLUSTER_TYPES.iteritems():

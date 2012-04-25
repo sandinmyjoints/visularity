@@ -1,7 +1,7 @@
 var visualize_flat = function (data_url, chart_selector) {
 
-    var w = 640,
-        h = 480,
+    var w = 900,
+        h = 600,
         format = d3.format(",d");
 
     var pack = d3.layout.pack()
@@ -31,7 +31,7 @@ var visualize_flat = function (data_url, chart_selector) {
 
         node.append("title")
             .text(function (d) {
-                return d.name + (d.children ? "" : ": " + format(d.size));
+                return d.name;
             });
 
         node.append("circle")
@@ -41,18 +41,34 @@ var visualize_flat = function (data_url, chart_selector) {
             })
         ;
 
-        node.filter(
+//        node.filter(
+//            function (d) {
+//                return !d.children;
+//            }).append("text")
+//            .attr("text-anchor", "middle")
+//            .attr("dy", ".3em")
+//            .text(function (d) {
+//                return d.name.substring(0, d.r / 3);
+//            });
+
+        var leaves = node.filter(
             function (d) {
                 return !d.children;
-            }).append("text")
-            .attr("text-anchor", "middle")
-            .attr("dy", ".3em")
-            .text(function (d) {
-                return d.name.substring(0, d.r / 3);
             });
+        leaves.append("text")
+              .attr("text-anchor", "middle")
+              .attr("dy", "-5em");
+
+        leaves.select("text").append("svg:tspan").attr('dy', '-1.2em').attr('x', 0).text(function(d) {return get_substring(d, 0)});
+        leaves.select("text").append("svg:tspan").attr('dy', '1.2em').attr('x', 0).text(function(d) {return get_substring(d, 1)});
+        leaves.select("text").append("svg:tspan").attr('dy', '1.2em').attr('x', 0).text(function(d) {return get_substring(d, 2)});
     });
 };
 
+function get_substring(d, i) {
+    var lineLength = d.r / 3;
+    return d.name.substring(lineLength*i, lineLength*(i+1));
+}
 //d3.json("http://localhost:8000/static/data/output_flat.json", function(json) {
 //d3.json("http://localhost:8000/output_flat.json", visualize);
 
