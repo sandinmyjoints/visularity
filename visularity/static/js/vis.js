@@ -2,6 +2,24 @@ function show_scores(data_url, elm) {
     var dataset = [];
     d3.json(data_url, function (json) {
         dataset = json;
+        min_score = d3.min(dataset, function(arr) {
+            return d3.min(arr, function(d) {
+                if(isNaN(parseFloat(d))) {
+                    return 0;
+                }
+                return d == 1 ? 0 : d; // ignore 1s
+            });
+        });
+        max_score = d3.max(dataset, function(arr) {
+            return d3.max(arr, function(d) {
+                if(isNaN(parseFloat(d))) {
+                    return 0;
+                }
+                return d == 1 ? 0 : d; // ignore 1s
+            });
+        });
+        var scale = d3.scale.linear().domain([min_score, max_score]).nice().range([0, 1]);
+        var color = d3.interpolateRgb("#eee", "#5A8");
 
         d3.select(elm).select("table").remove();
 
@@ -33,10 +51,11 @@ function show_scores(data_url, elm) {
                     return "gray";
                 }
                 if(isNaN(parseFloat(d))) {
-                    return "#ededef";
+                    return "white";
                 }
 
-                return d > 0.2 ? "lightgreen": "pink"
+//                return d > 0.2 ? "lightgreen": "white"
+                return color(scale(d));
             })
             .text(function (d) {
                 return d;

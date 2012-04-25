@@ -166,3 +166,11 @@ table.similarity-scores {
 .highlight {
     color: #6ECEFE;
 }
+
+.submitted {
+    color: #333;
+}
+
+.calculated {
+    color: #333;
+}
