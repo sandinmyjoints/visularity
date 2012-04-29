@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 
 {% block extrahead %}
-<script type="text/javascript" src="{{ url_for('static', filename='js/d3.v2.js') }}"></script>
 <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/pack.css') }}"/>
 {% endblock extrahead %}
 
@@ -21,7 +20,7 @@
     <div class="content">
 
         {% if server_address %}
-        <div class="banner">&raquo; Visit <span class="highlight">{{ server_address }}:5000</span> to submit text.</div>
+        <div class="banner">&raquo; Visit <span class="highlight">{{ server_address }}</span> to submit text.</div>
         {% endif %}
 
         <button id="refresh">Refresh</button>
@@ -49,16 +48,17 @@
 {% endblock body %}
 
 {% block extrajs %}
-<script type="text/javascript" src="{{ url_for('static', filename='js/hookbox.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/libs/d3.v2.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/libs/hookbox.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/pack.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/cluster.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/vis.js') }}"></script>
 <script type="text/javascript">
     function refresh() {
-        visualize_flat("{{ url_for('cluster', type='hcluster') }}", "#chart-hcluster");
-        visualize_flat("{{ url_for('cluster', type='apcluster') }}", "#chart-apcluster");
-        visualize_dendro("{{ url_for('cluster', type='dcluster') }}", "#chart-dcluster");
-        show_scores("{{ url_for('similarity_scores') }}", "#similarity-scores");
+        visualize_flat("{{ url_for('serve_cluster', type='hcluster') }}", "#chart-hcluster");
+        visualize_flat("{{ url_for('serve_cluster', type='apcluster') }}", "#chart-apcluster");
+        visualize_dendro("{{ url_for('serve_cluster', type='dcluster') }}", "#chart-dcluster");
+        show_scores("{{ url_for('serve_similarity_scores') }}", "#similarity-scores");
     }
 
     $(document).ready(function () {

@@ -1,5 +1,5 @@
 from numpy.core.numeric import array
-from visularity.cluster.simcluster import linkage_to_d3
+from visularity.cluster import linkage_to_d3
 
 __author__ = 'wbert'
 

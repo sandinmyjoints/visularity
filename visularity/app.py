@@ -13,6 +13,7 @@ from flask.wrappers import Response
 import requests
 
 import similarity
+import cluster
 
 
 # Config
@@ -26,13 +27,15 @@ except Exception, ex:
 
 app = Flask(__name__)
 app.config.from_object(__name__)
+SERVER_ADDRESS = "%s:%d" % (settings.SERVER_IP, settings.PORT)
+
 
 CHANNEL_NAME = "refresh"  # hookbox channel
 
 
 # App globals
 similarity_score_matrix = OrderedDict()
-cluster_data = defaultdict(dict, **{k: {"name": "top", "size": 10} for k in settings.CLUSTER_TYPES.iterkeys()})
+cluster_data = defaultdict(dict, **{k: {"name": "top", "size": 10} for k in cluster.CLUSTER_TYPES.iterkeys()})
 dict_and_scores_lock = threading.RLock()
 user_counter = 0
 hookbook_process = None
@@ -100,19 +103,19 @@ def visualize():
     return render_template('visualize.html',
         hookbox_channel=CHANNEL_NAME,
         hookbox_ip=settings.SERVER_IP,
-        server_address=settings.SERVER_IP,
+        server_address=SERVER_ADDRESS,
     )
 
 
 @app.route('/similarity_scores')
-def similarity_scores():
+def serve_similarity_scores():
     global similarity_score_matrix
     with dict_and_scores_lock:
         return Response(json.dumps(similarity_score_matrix))
 
 
 @app.route('/cluster/<type>/')
-def cluster(type):
+def serve_cluster(type):
     global cluster_data
     with dict_and_scores_lock:
         return jsonify(**cluster_data[type])
@@ -137,7 +140,7 @@ class DataRefresher(similarity.StoppableThread):
 
             with dict_and_scores_lock:
 
-                for cluster_type in settings.CLUSTER_TYPES:
+                for cluster_type in cluster.CLUSTER_TYPES:
                     cluster_data[cluster_type] = work_done[cluster_type]
 
                 documents = work_done["documents"]

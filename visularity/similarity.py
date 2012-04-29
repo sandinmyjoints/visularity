@@ -7,7 +7,7 @@ import Queue
 import pprint
 import sys
 from gensim import models, corpora, similarities
-from cluster import simcluster
+import cluster
 
 try:
     import settings
@@ -100,7 +100,7 @@ class SimilarityCalculator(StoppableThread):
                     "similarity_scores": similarity_scores
                 }
 
-                for cluster_type, cluster_func in settings.CLUSTER_TYPES.iteritems():
+                for cluster_type, cluster_func in cluster.CLUSTER_TYPES.iteritems():
                     results[cluster_type] = cluster_func(sims, original_corpus)
 
                 if self.out_queue:
@@ -221,13 +221,13 @@ if __name__ == "__main__":
         pprint.pprint(sims)
 
         print "dendrogram cluster:"
-        dcluster_dict = simcluster.sims_to_dendrogram(sims, original_corpus)
+        dcluster_dict = cluster.sims_to_dendrogram(sims, original_corpus)
         pprint.pprint(dcluster_dict)
 
         print "hierarchical cluster:"
-        hcluster_dict = simcluster.sims_to_hcluster(sims, original_corpus)
+        hcluster_dict = cluster.sims_to_hcluster(sims, original_corpus)
         pprint.pprint(hcluster_dict)
 
         print "affinity propagation cluster:"
-        apcluster_dict = simcluster.sims_to_apcluster(sims, original_corpus)
+        apcluster_dict = cluster.sims_to_apcluster(sims, original_corpus)
         pprint.pprint(apcluster_dict)

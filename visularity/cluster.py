@@ -5,6 +5,8 @@ from scipy.cluster.hierarchy import dendrogram, linkage, fcluster, ward
 from sklearn.cluster.affinity_propagation_ import affinity_propagation
 
 
+
+
 def linkage_to_d3(Z, origin_corpus=None):
     """
             Convert linkage array arr into a dictionary suitable for dumping to json for d3
@@ -147,3 +149,8 @@ def serialize_cluster(cluster, fname):
     with open(fname, "w+") as output:
         json.dump(cluster, output)
 
+CLUSTER_TYPES = {
+    "hcluster": sims_to_hcluster,
+    "apcluster": sims_to_apcluster,
+    "dcluster": sims_to_dendrogram,
+    }

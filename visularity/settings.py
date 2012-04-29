@@ -1,10 +1,9 @@
 import os
 
-from cluster import simcluster
-
 
 # Flask settings
-HOST = '0.0.0.0'
+
+HOST = '0.0.0.0'  # Use 0.0.0.0 to listen on all available interfaces
 PORT = 5000
 DEBUG = True
 SECRET_KEY = "yoursecretkeyhere"
@@ -14,8 +13,7 @@ HOOKBOX_API_SECRET = "secret"
 HOOKBOX_ADMIN_PASSWORD = "admin"
 
 # Visularity settings
-SERVER_IP = "192.168.1.106"  # Need to set this to whatever IP your machine is using
-SERVER_ADDRESS = "%s:%d" % (SERVER_IP, PORT)
+SERVER_IP = "192.168.1.103"  # Set this to whatever IP your machine is using
 PROJECT_ROOT = os.path.dirname(__file__)
 
 GENSIM_DATA_ROOT = "/home/wbert/gensimdata/"
@@ -32,9 +30,5 @@ TFIDF_MODEL_FILE = os.path.join(GENSIM_DATA_ROOT, "wiki_en_tfidf.model")
 DICTIONARY_FILE = os.path.join(GENSIM_DATA_ROOT, "wiki_en_wordids.txt")
 SHARD_DIR = os.path.join('/tmp', "index_shards")
 
-CLUSTER_TYPES = {
-    "hcluster": simcluster.sims_to_hcluster,
-    "apcluster": simcluster.sims_to_apcluster,
-    "dcluster": simcluster.sims_to_dendrogram,
-}
+
 
