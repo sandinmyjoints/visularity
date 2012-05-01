@@ -4,7 +4,8 @@ setup(
     version = "0.1.0",
     packages = find_packages(),
 
-    install_requires = ['gensim>=0.8', 'scipy>=0.10.1', 'hookbox>=0.3.4dev', 'Flask>=0.8'],
+    install_requires = ['gensim>=0.8', 'scipy>=0.10.1', 'hookbox>=0.3.4dev', 'Flask>=0.8', 'scikit-learn>=0.10'
+    'requests>=0.11.1'],
 
     author = "William John Bert",
     author_email = "william.bert@gmail.com",
